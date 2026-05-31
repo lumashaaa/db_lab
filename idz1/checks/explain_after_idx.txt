@@ -1,0 +1,8 @@
+                                                           QUERY PLAN                                                           
+--------------------------------------------------------------------------------------------------------------------------------
+ Index Scan using idx_customers_email on customers  (cost=0.28..8.29 rows=1 width=93) (actual time=0.105..0.106 rows=1 loops=1)
+   Index Cond: (email = 'серморо95@mail.ru'::text)
+ Planning Time: 1.211 ms
+ Execution Time: 0.188 ms
+(4 rows)
+

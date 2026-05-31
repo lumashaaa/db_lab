@@ -1,0 +1,9 @@
+                                             QUERY PLAN                                              
+-----------------------------------------------------------------------------------------------------
+ Seq Scan on customers  (cost=0.00..34.00 rows=1 width=93) (actual time=0.113..0.169 rows=1 loops=1)
+   Filter: (email = 'серморо95@mail.ru'::text)
+   Rows Removed by Filter: 1199
+ Planning Time: 0.731 ms
+ Execution Time: 0.241 ms
+(5 rows)
+

@@ -1,0 +1,74 @@
+============================================================
+ИДЗ-1. Часть 4.1. Сравнение MV vs JOIN
+============================================================
+
+Запрос: продажи по месяцам, товарам и категориям за 2024 год.
+
+───────────────────────────────────────────────────────────
+[MV] Запрос к mv_monthly_sales (предагрегированные данные)
+───────────────────────────────────────────────────────────
+
+EXPLAIN ANALYZE
+SELECT month, product_name, category_name, total_qty, total_revenue
+FROM mv_monthly_sales
+WHERE month >= '2024-01-01'
+ORDER BY month, total_revenue DESC;
+
+Ожидаемый план (на ~1200 строках исходных данных):
+  -> Index Scan using idx_mv_monthly_sales_month on mv_monthly_sales
+     Index Cond: (month >= '2024-01-01')
+     Sort Key: month, total_revenue DESC
+  Planning time:  ~0.1 ms
+  Execution time: ~0.5–1 ms
+
+Почему быстро:
+  - Агрегация уже выполнена при REFRESH.
+  - Читается одна таблица (нет JOIN).
+  - Используется индекс по month.
+  - Объём данных MV << объёма order_items + orders + products + categories.
+
+───────────────────────────────────────────────────────────
+[JOIN] Запрос к нормализованным таблицам (4 JOIN + GROUP BY)
+───────────────────────────────────────────────────────────
+
+EXPLAIN ANALYZE
+SELECT date_trunc('month', o.order_date) AS month, ...
+FROM order_items oi
+JOIN orders o     ON ...
+JOIN products p   ON ...
+JOIN categories c ON ...
+WHERE o.status != 'cancelled'
+GROUP BY 1, 2, 3
+ORDER BY 1, total_revenue DESC;
+
+Ожидаемый план:
+  -> Sort (month, total_revenue DESC)
+     -> HashAggregate (GROUP BY month, product_name, category_name)
+        -> Hash Join (oi ⋈ p ⋈ cat ⋈ o)
+           -> Seq Scan on order_items
+           -> Hash on products
+           -> Hash on categories
+           -> Hash on orders (filter: status != 'cancelled')
+  Planning time:  ~0.5 ms
+  Execution time: ~5–15 ms (при 3000–5000 строках order_items)
+
+Почему медленнее:
+  - Полное сканирование order_items при каждом запросе.
+  - 3 Hash Join-а требуют построения хэш-таблиц в памяти.
+  - GROUP BY + ORDER BY добавляют сортировку.
+
+───────────────────────────────────────────────────────────
+Вывод
+───────────────────────────────────────────────────────────
+
+| Характеристика     | MV (mv_monthly_sales) | JOIN (нормализация)     |
+|--------------------|----------------------|-------------------------|
+| Время выполнения   | ~1 мс                | ~10 мс                  |
+| Свежесть данных    | На момент REFRESH    | Актуальные              |
+| Стоимость чтения   | Низкая               | Высокая (4 JOIN)        |
+| Стоимость записи   | REFRESH по расписанию| Бесплатно (живые данные)|
+| Подходит для       | Дашборды, OLAP-отчёты| OLTP, актуальные данные |
+
+Рекомендация:
+  MV — для аналитических отчётов (BI, дашборды, выгрузки за период).
+  JOIN — для оперативных данных (просмотр текущего статуса заказа).

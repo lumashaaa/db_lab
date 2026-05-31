@@ -1,0 +1,88 @@
+@startuml ИДЗ-1. Итоговая ER-диаграмма (3NF)
+
+skinparam linetype ortho
+skinparam shadowing false
+skinparam class {
+    BackgroundColor #F8F9FA
+    BorderColor     #343A40
+    ArrowColor      #495057
+    FontName        Arial
+}
+
+entity "categories" as CAT {
+    * category_id : SERIAL <<PK>>
+    --
+    * name        : TEXT UNIQUE
+}
+
+entity "products" as PRD {
+    * product_id  : SERIAL <<PK>>
+    --
+    * name        : TEXT UNIQUE
+    * category_id : INTEGER <<FK>>
+    * price       : NUMERIC(12,2)
+}
+
+entity "customers" as CUS {
+    * customer_id : SERIAL <<PK>>
+    --
+    * name        : TEXT
+    * email       : TEXT UNIQUE
+    * phone       : TEXT
+}
+
+entity "addresses" as ADR {
+    * address_id  : SERIAL <<PK>>
+    --
+    * customer_id : INTEGER <<FK>>
+    * address     : TEXT
+}
+
+entity "orders" as ORD {
+    * order_id     : INTEGER <<PK>>
+    --
+    * customer_id  : INTEGER <<FK>>
+    * address_id   : INTEGER <<FK>>
+    * order_date   : DATE
+    * status       : TEXT
+    * total_amount : NUMERIC(12,2)
+    ~ customer_name : TEXT  ' денормализованный снимок (4.2)
+}
+
+entity "order_items" as OIT {
+    * order_id              : INTEGER <<FK, PK>>
+    * item_index            : INTEGER <<PK>>
+    --
+    * product_id            : INTEGER <<FK>>
+    * quantity              : INTEGER
+    * price_at_order        : NUMERIC(12,2)
+    ~ product_name_snapshot : TEXT  ' денормализованный снимок (4.2)
+}
+
+entity "mv_monthly_sales" as MV <<Materialized View>> {
+    month          : TIMESTAMPTZ
+    product_name   : TEXT
+    category_name  : TEXT
+    total_qty      : BIGINT
+    total_revenue  : NUMERIC
+}
+
+CAT  ||--o{ PRD  : "1..* products\n per category"
+CUS  ||--o{ ADR  : "1..* addresses\n per customer"
+CUS  ||--o{ ORD  : "1..* orders\n per customer"
+ADR  ||--o{ ORD  : "1..* orders\n per address"
+ORD  ||--o{ OIT  : "1..* items\n per order"
+PRD  ||--o{ OIT  : "1..* lines\n per product"
+
+note top of MV
+  Обновляется вручную:
+  REFRESH MATERIALIZED VIEW CONCURRENTLY mv_monthly_sales;
+end note
+
+note bottom of ORD
+  customer_name — исторический снимок.
+  Синхронизируется триггером при
+  изменении customers.name
+end note
+
+@enduml
