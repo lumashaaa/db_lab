@@ -23,7 +23,7 @@ docker exec pg15 psql -U postgres -d idz1 -f /idz1/sql/06_denorm_mv.sql
 docker exec pg15 psql -U postgres -d idz1 -f /idz1/sql/07_denorm_table.sql
 ```
 
-Структура
+## Структура
 sql/ — SQL-скрипты: UNF → 1NF → 2NF → 3NF, запросы, индексы, денормализация
 checks/ — результаты EXPLAIN ANALYZE и сравнения
 schema.puml — ER-диаграмма (plantuml.com)
