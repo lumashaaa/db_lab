@@ -1,0 +1,4 @@
+   ┌─table─────────┬─disk_size─┬─total_rows─┐
+1. │ orders_flat   │ 41.05 MiB │    1000000 │
+2. │ monthly_sales │ 21.18 KiB │       2160 │
+   └───────────────┴───────────┴────────────┘
