@@ -1,0 +1,34 @@
+SELECT category, COUNT(*) AS cnt, AVG(price) AS avg_price
+FROM products WHERE MATCH('gaming') GROUP BY category ORDER BY cnt DESC;
+
++-------------------+-----+-------------+
+| category          | cnt | avg_price   |
++-------------------+-----+-------------+
+| Игровые консоли   | 892 | 42341.23    |
+| Ноутбуки          | 743 | 68921.45    |
+| Мониторы          | 621 | 34521.67    |
+| Клавиатуры        | 534 | 8921.34     |
+| Мыши              | 498 | 5432.12     |
++-------------------+-----+-------------+
+
+SELECT id, title, price FROM products WHERE MATCH('gaming')
+FACET category ORDER BY COUNT(*) DESC
+FACET brand ORDER BY COUNT(*) DESC;
+
+--- FACET category ---
++-------------------+----------+
+| category          | count(*) |
++-------------------+----------+
+| Игровые консоли   | 892      |
+| Ноутбуки          | 743      |
+| Мониторы          | 621      |
++-------------------+----------+
+
+--- FACET brand ---
++----------+----------+
+| brand    | count(*) |
++----------+----------+
+| ASUS     | 423      |
+| Logitech | 398      |
+| Samsung  | 367      |
++----------+----------+

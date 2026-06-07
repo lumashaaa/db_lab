@@ -1,0 +1,13 @@
+SELECT id, title, tags
+FROM products
+WHERE MATCH('phone') AND tags.color = 'black'
+LIMIT 10;
+
++------+----------------------------+----------------------------------------+
+| id   | title                      | tags                                   |
++------+----------------------------+----------------------------------------+
+| 1892 | Смартфон Samsung Galaxy 412| {"color":"black","tag":"wireless",...} |
+| 4231 | Смартфон Xiaomi Galaxy 234 | {"color":"black","tag":"portable",...} |
+| 7123 | Смартфон Apple Galaxy 567  | {"color":"black","tag":"gaming",...}   |
++------+----------------------------+----------------------------------------+
+3 rows in set (0.004 sec)

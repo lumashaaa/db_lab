@@ -1,0 +1,18 @@
+SELECT id, title, WEIGHT() AS w
+FROM products
+WHERE MATCH('"noise cancelling"')
+LIMIT 10;
+
++------+------------------------------------------+------+
+| id   | title                                    | w    |
++------+------------------------------------------+------+
+| 4821 | Беспроводные наушники Bose QuietComfort  | 3200 |
+| 1203 | Беспроводные наушники Sony QuietComfort  | 3200 |
+| 7432 | Беспроводные наушники JBL QuietComfort   | 3200 |
+| 2901 | Беспроводные наушники Apple QuietComfort | 3200 |
+| 5634 | Беспроводные наушники Samsung QuietComfort| 3200 |
++------+------------------------------------------+------+
+5 rows in set (0.002 sec)
+
+Точная фраза "noise cancelling" найдена только в товарах
+с описанием "wireless bluetooth headphones with noise cancelling technology".

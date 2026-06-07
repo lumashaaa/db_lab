@@ -1,0 +1,16 @@
+MySQL-протокол (порт 9306)
+mysql -h 127.0.0.1 -P 9306
+
++------------------+
+| Tables           |
++------------------+
+| products         |
++------------------+
+1 row in set (0.00 sec)
+
+=== HTTP API (порт 9308) ===
+curl -s http://localhost:9308/sql -d "query=SHOW TABLES"
+
+{"columns":[{"Index":{"type":"string"}},{"Type":{"type":"string"}}],
+"data":[{"Index":"products","Type":"rt"}],
+"total":1,"error":"","warning":""}

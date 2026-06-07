@@ -1,0 +1,20 @@
+SELECT id, title, WEIGHT() AS w
+FROM products
+WHERE MATCH('wireless bluetooth headphones')
+ORDER BY w DESC LIMIT 10;
+
++------+------------------------------------------+------+
+| id   | title                                    | w    |
++------+------------------------------------------+------+
+| 4821 | Беспроводные наушники Bose QuietComfort  | 2841 |
+| 1203 | Беспроводные наушники Sony QuietComfort  | 2798 |
+| 7432 | Беспроводные наушники JBL QuietComfort   | 2754 |
+| 2901 | Беспроводные наушники Apple QuietComfort | 2711 |
+| 5634 | Беспроводные наушники Samsung QuietComfort| 2698 |
+| 8821 | Игровая гарнитура Logitech Nova          | 1823 |
+| 3341 | Игровая гарнитура Sony Nova              | 1799 |
+| 9102 | Умные часы Samsung Watch                 | 1201 |
+| 6721 | Смартфон Samsung Galaxy                  | 1187 |
+| 4312 | Портативная колонка JBL Charge           | 1154 |
++------+------------------------------------------+------+
+10 rows in set (0.003 sec)

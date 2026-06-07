@@ -1,0 +1,26 @@
+PostgreSQL: поиск через tsvector + GIN-индекс
+
+SELECT title, ts_rank(tsv, q) AS rank
+FROM pg_products, to_tsquery('english', 'wireless & bluetooth & headphones') q
+WHERE tsv @@ q ORDER BY rank DESC LIMIT 10;
+
+Execution time: ~8 ms (с GIN-индексом)
+
+ManticoreSearch: тот же запрос
+SELECT id, title, WEIGHT() AS w FROM products
+WHERE MATCH('wireless bluetooth headphones')
+ORDER BY w DESC LIMIT 10;
+
+Execution time: ~3 ms
+
+Сравнительная таблица:
+
+Характеристика        | ManticoreSearch    | PostgreSQL (tsvector)
+----------------------|--------------------|----------------------
+Время поиска (100K)   | ~3 мс              | ~8 мс
+Релевантность         | BM25 (лучше)       | ts_rank (проще)
+Морфология из коробки | да (stem_enru)     | через словари (сложнее)
+Фасетный поиск        | да (FACET)         | нет, только GROUP BY
+JSON-атрибуты         | да (встроено)      | jsonb (есть, но медленнее)
+Транзакции            | нет                | да (ACID)
+Когда использовать    | поиск по каталогу  | OLTP + редкий поиск
