@@ -1,0 +1,23 @@
+Эксперимент B — потеря Keeper-узлов
+
+1. Остановить keeper3 (кворум 2/3 — работает):
+   docker stop keeper3
+
+2. Вставить данные — должно работать:
+   docker exec node1 clickhouse-client --query "
+   INSERT INTO repl.events SELECT now(), 'test_b1', rand()%1000, 'exp_b1'
+   FROM numbers(100);"
+
+3. Остановить keeper2 (кворума нет — 1/3):
+   docker stop keeper2
+
+4. Попытка вставки — должна упасть с ошибкой:
+   docker exec node1 clickhouse-client --query "
+   INSERT INTO repl.events SELECT now(), 'test_b2', rand()%1000, 'exp_b2'
+   FROM numbers(100);"
+
+5. SELECT работает (локальные данные):
+   docker exec node1 clickhouse-client --query "SELECT count() FROM repl.events;"
+
+6. Вернуть Keeper:
+   docker start keeper2 keeper3

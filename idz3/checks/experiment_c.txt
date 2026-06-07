@@ -1,0 +1,19 @@
+Эксперимент C — конфликт данных
+
+1. Остановить node2:
+   docker stop node2
+
+2. Вставить данные в node1:
+   docker exec node1 clickhouse-client --query "
+   INSERT INTO repl.events SELECT now(), 'test_c', rand()%1000, 'exp_c'
+   FROM numbers(1000);"
+
+3. Поднять node2:
+   docker start node2
+
+4. Проверить что данные совпадают:
+   docker exec node1 clickhouse-client --query "SELECT count() FROM repl.events;"
+   docker exec node2 clickhouse-client --query "SELECT count() FROM repl.events;"
+
+Вывод: конфликтов нет — репликация детерминирована через лог в Keeper.
+Все реплики применяют операции в одном порядке.

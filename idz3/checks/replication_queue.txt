@@ -1,0 +1,15 @@
+Вывод system.replication_queue во время синхронизации node3 (эксперимент A).
+
+Сохранить командой сразу после docker start node3:
+docker exec node3 clickhouse-client --query "
+SELECT database, table, type, create_time, required_quorum,
+       source_replica, new_part_name, parts_to_merge, is_detach
+FROM system.replication_queue
+WHERE table = 'events'
+FORMAT Vertical;" > checks/replication_queue.txt
+
+Поля:
+- type: тип операции (GET_PART, MERGE_PARTS, и др.)
+- source_replica: откуда скачивается парт
+- new_part_name: имя нового парта
+- required_quorum: нужен ли кворум для применения

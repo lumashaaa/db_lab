@@ -1,0 +1,46 @@
+services:
+
+  node1:
+    image: clickhouse/clickhouse-server:latest
+    container_name: node1
+    hostname: node1
+    environment:
+      - CLICKHOUSE_PASSWORD=click123
+    volumes:
+      - ./config/clickhouse/cluster.xml:/etc/clickhouse-server/config.d/cluster.xml
+      - ./config/clickhouse/node1_macros.xml:/etc/clickhouse-server/config.d/macros.xml
+      - ./config/keeper/keeper1.xml:/etc/clickhouse-server/config.d/keeper.xml
+    ports:
+      - "8126:8123"
+      - "9003:9000"
+      - "9181:9181"
+
+  node2:
+    image: clickhouse/clickhouse-server:latest
+    container_name: node2
+    hostname: node2
+    environment:
+      - CLICKHOUSE_PASSWORD=click123
+    volumes:
+      - ./config/clickhouse/cluster.xml:/etc/clickhouse-server/config.d/cluster.xml
+      - ./config/clickhouse/node2_macros.xml:/etc/clickhouse-server/config.d/macros.xml
+      - ./config/keeper/keeper2.xml:/etc/clickhouse-server/config.d/keeper.xml
+    ports:
+      - "8124:8123"
+      - "9001:9000"
+      - "9182:9181"
+
+  node3:
+    image: clickhouse/clickhouse-server:latest
+    container_name: node3
+    hostname: node3
+    environment:
+      - CLICKHOUSE_PASSWORD=click123
+    volumes:
+      - ./config/clickhouse/cluster.xml:/etc/clickhouse-server/config.d/cluster.xml
+      - ./config/clickhouse/node3_macros.xml:/etc/clickhouse-server/config.d/macros.xml
+      - ./config/keeper/keeper3.xml:/etc/clickhouse-server/config.d/keeper.xml
+    ports:
+      - "8125:8123"
+      - "9002:9000"
+      - "9183:9181"
