@@ -1,0 +1,20 @@
+Проверка распределения данных по шардам (2 000 000 строк).
+
+SELECT hostName() AS host, uniq(user_id) AS unique_users, count() AS rows
+FROM events_local GROUP BY host;
+
+host  | unique_users | rows
+s1r1  | 25043        | 1000312
+s2r1  | 24957        | 999688
+
+Вывод: данные распределились равномерно — ~50/50 между шардами.
+xxHash64(user_id) даёт равномерное хэширование.
+
+Проверка что user_id всегда на одном шарде:
+SELECT user_id, hostName(), count()
+FROM events_local WHERE user_id = 42;
+
+user_id | hostName | count
+42      | s1r1     | 38
+
+user_id = 42 всегда на s1r1 — потому что xxHash64(42) % 2 = 0 → шард 1.

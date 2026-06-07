@@ -1,0 +1,7 @@
+SELECT * FROM system.clusters WHERE cluster = 'cluster_2x2' FORMAT PrettyCompact;
+
+cluster     | shard_num | shard_weight | replica_num | host_name | port | is_local
+cluster_2x2 | 1         | 1            | 1           | s1r1      | 9000 | 1
+cluster_2x2 | 1         | 1            | 2           | s1r2      | 9000 | 0
+cluster_2x2 | 2         | 1            | 1           | s2r1      | 9000 | 0
+cluster_2x2 | 2         | 1            | 2           | s2r2      | 9000 | 0

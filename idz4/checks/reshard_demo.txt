@@ -1,0 +1,47 @@
+Добавление третьего шарда (s3r1, s3r2).
+
+1. Обновить cluster.xml — добавить третий <shard>:
+
+<cluster_2x2>
+    <shard>
+        <replica><host>s1r1</host><port>9000</port></replica>
+        <replica><host>s1r2</host><port>9000</port></replica>
+    </shard>
+    <shard>
+        <replica><host>s2r1</host><port>9000</port></replica>
+        <replica><host>s2r2</host><port>9000</port></replica>
+    </shard>
+    <shard>
+        <replica><host>s3r1</host><port>9000</port></replica>
+        <replica><host>s3r2</host><port>9000</port></replica>
+    </shard>
+</cluster_2x2>
+
+2. Новые данные после обновления events_distributed уходят на все 3 шарда:
+
+SELECT hostName(), count() FROM events_local GROUP BY hostName();
+s1r1: 1000312  (старые)
+s2r1: 999688   (старые)
+s3r1: 333421   (только новые)
+
+3. Что происходит со старыми данными?
+
+Старые данные НЕ перемещаются автоматически. xxHash64(user_id) % 3
+даёт другое распределение чем % 2, поэтому часть user_id теперь
+маршрутизируется на s3, но их исторические данные остались на s1/s2.
+Это приводит к некорректным агрегатам для старых данных.
+
+4. Как выполнить ребалансировку?
+
+Ручная ребалансировка через INSERT ... SELECT:
+
+INSERT INTO events_distributed
+SELECT * FROM events_local
+WHERE xxHash64(user_id) % 3 = 2;  -- данные которые теперь должны быть на s3
+
+После этого удалить перенесённые данные с s1/s2:
+ALTER TABLE events_local DELETE
+WHERE xxHash64(user_id) % 3 = 2;
+
+Это дорогая операция — в продакшене планируют заранее
+(over-sharding: создать больше шардов чем нужно сейчас).

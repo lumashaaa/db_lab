@@ -1,0 +1,60 @@
+1. Глобальный COUNT
+
+SELECT count() FROM events_distributed;
+2000000
+
+Сумма локальных:
+s1r1: 1000312
+s2r1: 999688
+Итого: 2000000 ✓
+
+2. TOP-10 пользователей (эффективный запрос — данные юзера на одном шарде)
+
+SELECT user_id, count() AS events
+FROM events_distributed GROUP BY user_id ORDER BY events DESC LIMIT 10;
+
+user_id | events
+12453   | 312
+8821    | 298
+33104   | 291
+...
+
+Запрос эффективен: каждый шард считает свои user_id локально,
+coordinator только мёрджит TOP-10 с каждого шарда.
+
+3. TOP-10 страниц (shuffle между шардами)
+
+SELECT page_url, count() AS visits
+FROM events_distributed GROUP BY page_url ORDER BY visits DESC LIMIT 10;
+
+page_url   | visits
+/          | 134021
+/catalog   | 133847
+/product/1 | 133612
+...
+
+Здесь происходит shuffle: page_url не является ключом шардирования,
+поэтому данные по одной странице разбросаны по обоим шардам.
+Coordinator собирает частичные агрегаты с каждого шарда и мёрджит.
+
+4. JOIN через GLOBAL IN
+
+Проблема broadcast JOIN:
+При обычном JOIN с Distributed-таблицей каждый шард получает
+подзапрос к user_dict и выполняет его локально — это N запросов
+к удалённым шардам.
+
+Решение — GLOBAL JOIN:
+GLOBAL JOIN скачивает user_dict целиком на coordinator один раз,
+затем рассылает его как broadcast на все шарды. Это уменьшает
+количество сетевых запросов с N*M до N+M.
+
+SELECT e.user_id, u.name, u.segment, count() AS events
+FROM events_distributed e
+GLOBAL JOIN user_dict_distributed u ON e.user_id = u.user_id
+GROUP BY e.user_id, u.name, u.segment
+ORDER BY events DESC LIMIT 10;
+
+user_id | name      | segment  | events
+12453   | User_12453 | premium | 312
+8821    | User_8821  | trial   | 298
